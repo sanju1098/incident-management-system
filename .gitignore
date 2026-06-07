@@ -1,0 +1,8 @@
+node_modules
+
+Notes
+
+.env
+coverage
+.logs
+dist
