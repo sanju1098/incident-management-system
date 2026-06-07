@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import errorMiddleware from "./middleware/error.middleware.js";
+import routes from "./routes/index.js";
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.get("/health", (req, res) => {
     message: "Server Running",
   });
 });
+
+app.use("/api/v1", routes);
 
 app.use(errorMiddleware);
 

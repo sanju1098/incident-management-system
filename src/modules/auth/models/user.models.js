@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-
-import { ROLE_VALUES } from "../../../constants/roles.js";
+import { ROLE_VALUES, ROLES } from "../../../constants/roles.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -29,7 +28,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ROLE_VALUES,
-      default: "Developer",
+      default: ROLES.DEVELOPER,
     },
 
     avatar: {
@@ -47,14 +46,12 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   this.password = await bcrypt.hash(this.password, 10);
-
-  next();
 });
 
 userSchema.methods.comparePassword = async function (password) {
