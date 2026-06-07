@@ -1,6 +1,7 @@
 import ApiError from "../utils/api/error.js";
 import User from "../modules/auth/models/user.models.js";
 import { verifyAccessToken } from "../utils/jwt.js";
+import { HTTP_STATUS } from "../constants/httpStatus.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -21,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
-      throw new ApiError(401, "User not found");
+      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, "User not found");
     }
 
     req.user = user;

@@ -1,7 +1,11 @@
 import User from "./models/user.models.js";
 import RefreshToken from "./models/refreshToken.model.js";
 import ApiError from "../../utils/api/error.js";
-import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../../utils/jwt.js";
 import { HTTP_STATUS } from "../../constants/httpStatus.js";
 
 // Register Service - Register a new user
@@ -54,4 +58,37 @@ export const loginUser = async (email, password) => {
     accessToken,
     refreshToken,
   };
+};
+
+// Profile Service - Get user profile by ID
+export const getUserProfile = async (userId) => {
+  const user = await User.findById(userId).select("-password");
+  return user;
+};
+
+// Refresh Token Service - Generate new access token using refresh token
+export const refreshUserToken = async (token) => {
+  const storedToken = await RefreshToken.findOne({
+    token,
+  });
+
+  if (!storedToken) {
+    throw new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid refresh token");
+  }
+
+  const decoded = verifyRefreshToken(token);
+
+  const accessToken = generateAccessToken({
+    userId: decoded.userId,
+    role: decoded.role,
+  });
+
+  return accessToken;
+};
+
+// Logout Service - Invalidate refresh token
+export const logoutUser = async (token) => {
+  await RefreshToken.findOneAndDelete({
+    token,
+  });
 };
