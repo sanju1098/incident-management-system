@@ -69,7 +69,7 @@ Authorization: Bearer <access_token>
 | POST   | `/auth/login`         | ❌                   |
 | POST   | `/auth/refresh-token` | Refresh Token Cookie |
 | POST   | `/auth/logout`        | Refresh Token Cookie |
-| GET    | `/auth/me`            | ✅                   |
+| GET    | `/auth/profile`       | ✅                   |
 
 ---
 
@@ -193,7 +193,7 @@ Not Required
 ### Endpoint
 
 ```http
-GET /auth/me
+GET /auth/profile
 ```
 
 ### Headers
