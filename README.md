@@ -1,30 +1,63 @@
 # Incident Management System API Documentation
 
+## Overview
+
+This Incident Management System is a backend API built with Node.js, Express, MongoDB, and Cloudinary.
+It provides authentication, role-based authorization, user management, team management, and file upload support.
+
+## Tech Stack
+
+- Node.js with ES modules
+- Express 5
+- MongoDB / Mongoose
+- JWT authentication with access and refresh tokens
+- Cloudinary file uploads via `multer-storage-cloudinary`
+- Validation using Zod
+- Security via Helmet, rate limiting, CORS, cookie parsing
+
 ## Base URL
 
 ```http
 http://localhost:5000/api/v1
 ```
 
----
+## Environment Variables
 
-# Authentication
+Create a `.env` file with the following values:
 
-Authentication is handled using:
+```env
+PORT=5000
+MONGO_URI=<your-mongodb-uri>
+JWT_SECRET=<your-jwt-secret>
+JWT_EXPIRES_IN=15m
+REFRESH_TOKEN_EXPIRES_IN=7d
+CLOUDINARY_CLOUD_NAME=<cloudinary-cloud-name>
+CLOUDINARY_API_KEY=<cloudinary-api-key>
+CLOUDINARY_API_SECRET=<cloudinary-api-secret>
+NODE_ENV=development
+```
 
-- JWT Access Token
-- JWT Refresh Token
-- HttpOnly Refresh Token Cookie
+## Getting Started
 
-Protected routes require:
+```bash
+npm install
+npm run dev
+```
+
+## Authentication
+
+Authentication uses:
+
+- JWT access token in `Authorization` header
+- JWT refresh token stored as an HttpOnly cookie
+
+Protected requests require:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
----
-
-# Roles
+## Roles
 
 | Role      | Description                         |
 | --------- | ----------------------------------- |
@@ -33,91 +66,79 @@ Authorization: Bearer <access_token>
 | Developer | Incident handling and collaboration |
 | Viewer    | Read-only access                    |
 
----
+## Access Control
 
-# Access Control Matrix
+| Endpoint                 | Admin | Manager | Developer | Viewer |
+| ------------------------ | ----- | ------- | --------- | ------ |
+| `POST /auth/register`    | ✅    | ✅      | ✅        | ✅     |
+| `POST /auth/login`       | ✅    | ✅      | ✅        | ✅     |
+| `POST /auth/refresh-token` | ✅  | ✅      | ✅        | ✅     |
+| `POST /auth/logout`      | ✅    | ✅      | ✅        | ✅     |
+| `GET /auth/profile`      | ✅    | ✅      | ✅        | ✅     |
+| `GET /users/profile`     | ✅    | ✅      | ✅        | ✅     |
+| `PUT /users/profile`     | ✅    | ✅      | ✅        | ✅     |
+| `GET /users`             | ✅    | ❌      | ❌        | ❌     |
+| `PATCH /users/:id/activate`   | ✅ | ❌ | ❌ | ❌ |
+| `PATCH /users/:id/deactivate` | ✅ | ❌ | ❌ | ❌ |
+| `POST /teams`            | ✅    | ✅      | ❌        | ❌     |
+| `GET /teams`             | ✅    | ✅      | ✅        | ✅     |
+| `GET /teams/:id`         | ✅    | ✅      | ✅        | ✅     |
+| `PUT /teams/:id`         | ✅    | ✅      | ❌        | ❌     |
+| `DELETE /teams/:id`      | ✅    | ❌      | ❌        | ❌     |
+| `PATCH /teams/:id/members` | ✅  | ✅      | ❌        | ❌     |
+| `POST /uploads/single`   | ✅    | ✅      | ✅        | ✅     |
+| `POST /uploads/multiple` | ✅    | ✅      | ✅        | ✅     |
 
-| Endpoint            | Admin | Manager | Developer | Viewer |
-| ------------------- | ----- | ------- | --------- | ------ |
-| Register            | ✅    | ✅      | ✅        | ✅     |
-| Login               | ✅    | ✅      | ✅        | ✅     |
-| Refresh Token       | ✅    | ✅      | ✅        | ✅     |
-| Logout              | ✅    | ✅      | ✅        | ✅     |
-| Get Current User    | ✅    | ✅      | ✅        | ✅     |
-| Get Profile         | ✅    | ✅      | ✅        | ✅     |
-| Update Profile      | ✅    | ✅      | ✅        | ✅     |
-| List Users          | ✅    | ❌      | ❌        | ❌     |
-| Filter Users        | ✅    | ❌      | ❌        | ❌     |
-| Activate User       | ✅    | ❌      | ❌        | ❌     |
-| Deactivate User     | ✅    | ❌      | ❌        | ❌     |
-| Create Team         | ✅    | ✅      | ❌        | ❌     |
-| Update Team         | ✅    | ✅      | ❌        | ❌     |
-| Delete Team         | ✅    | ❌      | ❌        | ❌     |
-| Assign Team Members | ✅    | ✅      | ❌        | ❌     |
-| View Teams          | ✅    | ✅      | ✅        | ✅     |
-| View Team Details   | ✅    | ✅      | ✅        | ✅     |
+## API Summary
 
----
-
-# API Summary
-
-## Authentication APIs
+### Authentication APIs
 
 | Method | Endpoint              | Auth Required        |
 | ------ | --------------------- | -------------------- |
-| POST   | `/auth/register`      | ❌                   |
-| POST   | `/auth/login`         | ❌                   |
-| POST   | `/auth/refresh-token` | Refresh Token Cookie |
-| POST   | `/auth/logout`        | Refresh Token Cookie |
-| GET    | `/auth/me`            | ✅                   |
+| POST   | `/auth/register`      | No                   |
+| POST   | `/auth/login`         | No                   |
+| GET    | `/auth/profile`       | Yes                  |
+| POST   | `/auth/refresh-token` | Refresh token cookie or body |
+| POST   | `/auth/logout`        | Refresh token cookie or body |
 
----
-
-## User Management APIs
+### User Management APIs
 
 | Method | Endpoint                | Auth Required |
 | ------ | ----------------------- | ------------- |
-| GET    | `/users/profile`        | ✅            |
-| PUT    | `/users/profile`        | ✅            |
-| GET    | `/users`                | ✅            |
-| GET    | `/users?role=Developer` | ✅            |
-| PATCH  | `/users/:id/activate`   | ✅            |
-| PATCH  | `/users/:id/deactivate` | ✅            |
+| GET    | `/users/profile`        | Yes           |
+| PUT    | `/users/profile`        | Yes           |
+| GET    | `/users`                | Yes, Admin only |
+| PATCH  | `/users/:id/activate`   | Yes, Admin only |
+| PATCH  | `/users/:id/deactivate` | Yes, Admin only |
 
----
-
-## Team Management APIs
+### Team Management APIs
 
 | Method | Endpoint             | Auth Required |
 | ------ | -------------------- | ------------- |
-| POST   | `/teams`             | ✅            |
-| GET    | `/teams`             | ✅            |
-| GET    | `/teams/:id`         | ✅            |
-| PUT    | `/teams/:id`         | ✅            |
-| DELETE | `/teams/:id`         | ✅            |
-| PATCH  | `/teams/:id/members` | ✅            |
+| POST   | `/teams`             | Yes, Admin/Manager |
+| GET    | `/teams`             | Yes           |
+| GET    | `/teams/:id`         | Yes           |
+| PUT    | `/teams/:id`         | Yes, Admin/Manager |
+| DELETE | `/teams/:id`         | Yes, Admin only |
+| PATCH  | `/teams/:id/members` | Yes, Admin/Manager |
 
----
+### File Upload APIs
 
-# Detailed API Reference
+| Method | Endpoint             | Auth Required |
+| ------ | -------------------- | ------------- |
+| POST   | `/uploads/single`    | Yes           |
+| POST   | `/uploads/multiple`  | Yes           |
 
----
 
-# 1. Register User
+## Detailed Endpoints
 
-### Endpoint
+### 1. Register User
 
-```http
-POST /auth/register
-```
+**Endpoint**: `POST /auth/register`
 
-### Authentication
+**Auth**: not required
 
-```text
-Not Required
-```
-
-### Request Body
+**Body**:
 
 ```json
 {
@@ -128,7 +149,7 @@ Not Required
 }
 ```
 
-### Success Response
+**Success**:
 
 ```json
 {
@@ -145,21 +166,13 @@ Not Required
 
 ---
 
-# 2. Login
+### 2. Login
 
-### Endpoint
+**Endpoint**: `POST /auth/login`
 
-```http
-POST /auth/login
-```
+**Auth**: not required
 
-### Authentication
-
-```text
-Not Required
-```
-
-### Request Body
+**Body**:
 
 ```json
 {
@@ -168,7 +181,7 @@ Not Required
 }
 ```
 
-### Success Response
+**Success**:
 
 ```json
 {
@@ -188,32 +201,22 @@ Not Required
 
 ---
 
-# 3. Get Current User
+### 3. Get Auth Profile
 
-### Endpoint
+**Endpoint**: `GET /auth/profile`
 
-```http
-GET /auth/me
-```
-
-### Headers
+**Headers**:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-### Authentication
-
-```text
-Required
-```
-
-### Success Response
+**Success**:
 
 ```json
 {
   "success": true,
-  "message": "User profile fetched",
+  "message": "User profile retrieved successfully",
   "data": {
     "_id": "6654c1c",
     "name": "Sanjay Kumar",
@@ -225,27 +228,55 @@ Required
 
 ---
 
-# 4. Get Profile
+### 4. Refresh Token
 
-### Endpoint
+**Endpoint**: `POST /auth/refresh-token`
 
-```http
-GET /users/profile
+**Auth**: uses refresh token cookie or body `refreshToken`
+
+**Success**:
+
+```json
+{
+  "success": true,
+  "message": "Token refreshed",
+  "data": {
+    "accessToken": "new_jwt_access_token"
+  }
+}
 ```
 
-### Headers
+---
+
+### 5. Logout
+
+**Endpoint**: `POST /auth/logout`
+
+**Auth**: uses refresh token cookie or body `refreshToken`
+
+**Success**:
+
+```json
+{
+  "success": true,
+  "message": "Logout successful",
+  "data": "User logged out successfully"
+}
+```
+
+---
+
+### 6. Get Profile
+
+**Endpoint**: `GET /users/profile`
+
+**Headers**:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-### Authentication
-
-```text
-Required
-```
-
-### Success Response
+**Success**:
 
 ```json
 {
@@ -262,21 +293,17 @@ Required
 
 ---
 
-# 5. Update Profile
+### 7. Update Profile
 
-### Endpoint
+**Endpoint**: `PUT /users/profile`
 
-```http
-PUT /users/profile
-```
-
-### Headers
+**Headers**:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-### Request Body
+**Body**:
 
 ```json
 {
@@ -285,7 +312,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-### Success Response
+**Success**:
 
 ```json
 {
@@ -297,6 +324,220 @@ Authorization: Bearer <access_token>
   }
 }
 ```
+
+---
+
+### 8. List Users (Admin)
+
+**Endpoint**: `GET /users`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Success**:
+
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": [ ... ]
+}
+```
+
+---
+
+### 9. Activate User (Admin)
+
+**Endpoint**: `PATCH /users/:id/activate`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 10. Deactivate User (Admin)
+
+**Endpoint**: `PATCH /users/:id/deactivate`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 11. Create Team
+
+**Endpoint**: `POST /teams`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Body**:
+
+```json
+{
+  "name": "Support Team",
+  "description": "Handles incident response"
+}
+```
+
+---
+
+### 12. Get Teams
+
+**Endpoint**: `GET /teams`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 13. Get Team Details
+
+**Endpoint**: `GET /teams/:id`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 14. Update Team
+
+**Endpoint**: `PUT /teams/:id`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 15. Delete Team
+
+**Endpoint**: `DELETE /teams/:id`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### 16. Assign Members
+
+**Endpoint**: `PATCH /teams/:id/members`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Body**:
+
+```json
+{
+  "memberIds": ["userId1", "userId2"]
+}
+```
+
+---
+
+### 17. Upload Single File
+
+**Endpoint**: `POST /uploads/single`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Form Data**:
+
+- `file`: file upload field
+
+**Supported file types**:
+
+- `image/png`
+- `image/jpeg`
+- `image/jpg`
+- `application/pdf`
+- `text/plain`
+
+**Success**:
+
+```json
+{
+  "success": true,
+  "message": "File uploaded successfully",
+  "data": {
+    "url": "https://res.cloudinary.com/...",
+    "publicId": "..."
+  }
+}
+```
+
+---
+
+### 18. Upload Multiple Files
+
+**Endpoint**: `POST /uploads/multiple`
+
+**Headers**:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+**Form Data**:
+
+- `files`: array of files, up to 10 files
+
+---
+
+## Notes
+
+- File uploads are stored in Cloudinary under the `incident-management` folder.
+- User profile updates and team management are protected by authenticated routes.
+- Admin-only actions include listing users, activating/deactivating users, and deleting teams.
+
+---
+
+## Project Status
+
+Implemented modules:
+
+- Authentication with register/login/refresh/logout
+- User profile read/update
+- Admin user management
+- Team creation, retrieval, update, delete, assignment
+- Cloudinary-based file upload support
+
+Pending / next work:
+
+- Delete file API support for uploads
+- Incident, comment, notification modules
+- More detailed API documentation for each module if new endpoints are added
 
 ---
 
