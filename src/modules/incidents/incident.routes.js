@@ -13,6 +13,8 @@ import {
   getIncidentById,
   updateIncident,
   deleteIncident,
+  restoreIncident,
+  archiveIncident,
 } from "./incident.controller.js";
 
 const router = Router();
@@ -34,5 +36,12 @@ router.put(
   updateIncident,
 );
 router.delete("/:id", protect, authorize("Admin"), deleteIncident);
+router.patch("/:id/restore", protect, authorize("Admin"), restoreIncident);
+router.patch(
+  "/:id/archive",
+  protect,
+  authorize("Admin", "Manager"),
+  archiveIncident,
+);
 
 export default router;

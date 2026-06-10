@@ -13,7 +13,9 @@ export const getIncidentsService = async (filters) => {
   const { search, severity, status, team, page, limit, sortBy, sortOrder } =
     filters;
 
-  const query = {};
+  const query = {
+    isDeleted: false,
+  };
 
   if (search) {
     query.$text = {
@@ -45,7 +47,12 @@ export const getIncidentsService = async (filters) => {
     .populate("assignee", "name email")
     .sort(sort)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
+  /**
+  Without lean: MongoDB Document → Mongoose Object → Heavy
+  With lean: Plain JavaScript Object → Faster → Less memory
+  */
 
   const total = await Incident.countDocuments(query);
 
@@ -91,10 +98,64 @@ export const updateIncidentService = async (incidentId, payload) => {
 };
 
 export const deleteIncidentService = async (incidentId) => {
-  const incident = await Incident.findByIdAndDelete(incidentId);
+  const incident = await Incident.findById(incidentId);
+
+  if (!incident) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Incident not found");
+  }
+  incident.isDeleted = true;
+  incident.deletedAt = new Date();
+  await incident.save();
+  return true;
+};
+
+export const restoreIncidentService = async (incidentId) => {
+  const incident = await Incident.findById(incidentId);
+
   if (!incident) {
     throw new ApiError(HTTP_STATUS.NOT_FOUND, "Incident not found");
   }
 
-  return true;
+  incident.isDeleted = false;
+  incident.deletedAt = null;
+  await incident.save();
+  return incident;
+};
+
+export const archiveIncidentService = async (incidentId) => {
+  const incident = await Incident.findById(incidentId);
+
+  if (!incident) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Incident not found");
+  }
+
+  if (incident.status !== "Resolved") {
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "Only resolved incidents can be archived",
+    );
+  }
+
+  incident.isArchived = true;
+  incident.archivedAt = new Date();
+  await incident.save();
+  return incident;
+};
+
+export const incidentStatsService = async () => {
+  return Incident.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: "$severity",
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
 };

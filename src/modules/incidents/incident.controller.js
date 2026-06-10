@@ -75,3 +75,29 @@ export const deleteIncident = asyncHandler(async (req, res) => {
       new ApiResponse(HTTP_STATUS.OK, null, "Incident deleted successfully"),
     );
 });
+
+export const restoreIncident = asyncHandler(async (req, res) => {
+  const incident = await restoreIncidentService(req.params.id);
+  return res
+    .status(HTTP_STATUS.OK)
+    .json(
+      new ApiResponse(
+        HTTP_STATUS.OK,
+        incident,
+        "Incident restored successfully",
+      ),
+    );
+});
+
+export const archiveIncident = asyncHandler(async (req, res) => {
+  const incident = await archiveIncidentService(req.params.id);
+  return res
+    .status(HTTP_STATUS.OK)
+    .json(
+      new ApiResponse(
+        HTTP_STATUS.OK,
+        incident,
+        "Incident archived successfully",
+      ),
+    );
+});

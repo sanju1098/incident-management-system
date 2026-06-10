@@ -70,6 +70,20 @@ const incidentSchema = new mongoose.Schema(
     },
 
     resolvedAt: Date,
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: Date,
+
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    archivedAt: Date,
   },
   {
     timestamps: true,
@@ -83,6 +97,7 @@ incidentSchema.index({
 
 incidentSchema.index({
   severity: 1,
+  status: 1,
 });
 
 incidentSchema.index({
@@ -91,9 +106,11 @@ incidentSchema.index({
 
 incidentSchema.index({
   assignedTeam: 1,
+  status: 1,
 });
 
 incidentSchema.index({
+  status: 1,
   createdAt: -1,
 });
 
