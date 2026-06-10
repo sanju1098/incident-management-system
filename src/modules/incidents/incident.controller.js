@@ -26,7 +26,7 @@ export const createIncident = asyncHandler(async (req, res) => {
 });
 
 export const getIncidents = asyncHandler(async (req, res) => {
-  const incidents = await getIncidentsService();
+  const incidents = await getIncidentsService(req.validatedData.query);
   return res
     .status(HTTP_STATUS.OK)
     .json(

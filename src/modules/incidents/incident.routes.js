@@ -4,6 +4,7 @@ import authorize from "../../middleware/authorize.middleware.js";
 import validate from "../../middleware/validate.middleware.js";
 import {
   createIncidentSchema,
+  incidentQuerySchema,
   updateIncidentSchema,
 } from "./incident.validation.js";
 import {
@@ -23,7 +24,7 @@ router.post(
   validate(createIncidentSchema),
   createIncident,
 );
-router.get("/", protect, getIncidents);
+router.get("/", protect, validate(incidentQuerySchema), getIncidents);
 router.get("/:id", protect, getIncidentById);
 router.put(
   "/:id",

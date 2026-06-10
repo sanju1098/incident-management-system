@@ -33,3 +33,20 @@ export const updateIncidentSchema = z.object({
     tags: z.array(z.string()).optional(),
   }),
 });
+
+export const incidentQuerySchema = z.object({
+  query: z.object({
+    search: z.string().optional(),
+    severity: z.enum(["Low", "Medium", "High", "Critical"]).optional(),
+    status: z
+      .enum(["Open", "Investigating", "Identified", "Monitoring", "Resolved"])
+      .optional(),
+    team: z.string().optional(),
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(10),
+    sortBy: z
+      .enum(["createdAt", "updatedAt", "severity", "status"])
+      .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  }),
+});
