@@ -68,67 +68,66 @@ Authorization: Bearer <access_token>
 
 ## Access Control
 
-| Endpoint                 | Admin | Manager | Developer | Viewer |
-| ------------------------ | ----- | ------- | --------- | ------ |
-| `POST /auth/register`    | ✅    | ✅      | ✅        | ✅     |
-| `POST /auth/login`       | ✅    | ✅      | ✅        | ✅     |
-| `POST /auth/refresh-token` | ✅  | ✅      | ✅        | ✅     |
-| `POST /auth/logout`      | ✅    | ✅      | ✅        | ✅     |
-| `GET /auth/profile`      | ✅    | ✅      | ✅        | ✅     |
-| `GET /users/profile`     | ✅    | ✅      | ✅        | ✅     |
-| `PUT /users/profile`     | ✅    | ✅      | ✅        | ✅     |
-| `GET /users`             | ✅    | ❌      | ❌        | ❌     |
-| `PATCH /users/:id/activate`   | ✅ | ❌ | ❌ | ❌ |
-| `PATCH /users/:id/deactivate` | ✅ | ❌ | ❌ | ❌ |
-| `POST /teams`            | ✅    | ✅      | ❌        | ❌     |
-| `GET /teams`             | ✅    | ✅      | ✅        | ✅     |
-| `GET /teams/:id`         | ✅    | ✅      | ✅        | ✅     |
-| `PUT /teams/:id`         | ✅    | ✅      | ❌        | ❌     |
-| `DELETE /teams/:id`      | ✅    | ❌      | ❌        | ❌     |
-| `PATCH /teams/:id/members` | ✅  | ✅      | ❌        | ❌     |
-| `POST /uploads/single`   | ✅    | ✅      | ✅        | ✅     |
-| `POST /uploads/multiple` | ✅    | ✅      | ✅        | ✅     |
+| Endpoint                      | Admin | Manager | Developer | Viewer |
+| ----------------------------- | ----- | ------- | --------- | ------ |
+| `POST /auth/register`         | ✅    | ✅      | ✅        | ✅     |
+| `POST /auth/login`            | ✅    | ✅      | ✅        | ✅     |
+| `POST /auth/refresh-token`    | ✅    | ✅      | ✅        | ✅     |
+| `POST /auth/logout`           | ✅    | ✅      | ✅        | ✅     |
+| `GET /auth/profile`           | ✅    | ✅      | ✅        | ✅     |
+| `GET /users/profile`          | ✅    | ✅      | ✅        | ✅     |
+| `PUT /users/profile`          | ✅    | ✅      | ✅        | ✅     |
+| `GET /users`                  | ✅    | ❌      | ❌        | ❌     |
+| `PATCH /users/:id/activate`   | ✅    | ❌      | ❌        | ❌     |
+| `PATCH /users/:id/deactivate` | ✅    | ❌      | ❌        | ❌     |
+| `POST /teams`                 | ✅    | ✅      | ❌        | ❌     |
+| `GET /teams`                  | ✅    | ✅      | ✅        | ✅     |
+| `GET /teams/:id`              | ✅    | ✅      | ✅        | ✅     |
+| `PUT /teams/:id`              | ✅    | ✅      | ❌        | ❌     |
+| `DELETE /teams/:id`           | ✅    | ❌      | ❌        | ❌     |
+| `PATCH /teams/:id/members`    | ✅    | ✅      | ❌        | ❌     |
+| `POST /uploads/single`        | ✅    | ✅      | ✅        | ✅     |
+| `POST /uploads/multiple`      | ✅    | ✅      | ✅        | ✅     |
 
 ## API Summary
 
 ### Authentication APIs
 
-| Method | Endpoint              | Auth Required        |
-| ------ | --------------------- | -------------------- |
-| POST   | `/auth/register`      | No                   |
-| POST   | `/auth/login`         | No                   |
-| GET    | `/auth/profile`       | Yes                  |
+| Method | Endpoint              | Auth Required                |
+| ------ | --------------------- | ---------------------------- |
+| POST   | `/auth/register`      | No                           |
+| POST   | `/auth/login`         | No                           |
+| GET    | `/auth/profile`       | Yes                          |
 | POST   | `/auth/refresh-token` | Refresh token cookie or body |
 | POST   | `/auth/logout`        | Refresh token cookie or body |
 
 ### User Management APIs
 
-| Method | Endpoint                | Auth Required |
-| ------ | ----------------------- | ------------- |
-| GET    | `/users/profile`        | Yes           |
-| PUT    | `/users/profile`        | Yes           |
+| Method | Endpoint                | Auth Required   |
+| ------ | ----------------------- | --------------- |
+| GET    | `/users/profile`        | Yes             |
+| PUT    | `/users/profile`        | Yes             |
 | GET    | `/users`                | Yes, Admin only |
 | PATCH  | `/users/:id/activate`   | Yes, Admin only |
 | PATCH  | `/users/:id/deactivate` | Yes, Admin only |
 
 ### Team Management APIs
 
-| Method | Endpoint             | Auth Required |
-| ------ | -------------------- | ------------- |
+| Method | Endpoint             | Auth Required      |
+| ------ | -------------------- | ------------------ |
 | POST   | `/teams`             | Yes, Admin/Manager |
-| GET    | `/teams`             | Yes           |
-| GET    | `/teams/:id`         | Yes           |
+| GET    | `/teams`             | Yes                |
+| GET    | `/teams/:id`         | Yes                |
 | PUT    | `/teams/:id`         | Yes, Admin/Manager |
-| DELETE | `/teams/:id`         | Yes, Admin only |
+| DELETE | `/teams/:id`         | Yes, Admin only    |
 | PATCH  | `/teams/:id/members` | Yes, Admin/Manager |
 
 ### File Upload APIs
 
-| Method | Endpoint             | Auth Required |
-| ------ | -------------------- | ------------- |
-| POST   | `/uploads/single`    | Yes           |
-| POST   | `/uploads/multiple`  | Yes           |
-
+| Method | Endpoint            | Auth Required |
+| ------ | ------------------- | ------------- |
+| POST   | `/uploads/single`   | Yes           |
+| POST   | `/uploads/multiple` | Yes           |
 
 ## Detailed Endpoints
 
