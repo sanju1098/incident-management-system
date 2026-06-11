@@ -55,6 +55,7 @@ export const updateIncident = asyncHandler(async (req, res) => {
   const incident = await updateIncidentService(
     req.params.id,
     req.validatedData.body,
+    req.user._id,
   );
   return res
     .status(HTTP_STATUS.OK)
@@ -68,7 +69,7 @@ export const updateIncident = asyncHandler(async (req, res) => {
 });
 
 export const deleteIncident = asyncHandler(async (req, res) => {
-  await deleteIncidentService(req.params.id);
+  await deleteIncidentService(req.params.id, req.user._id);
   return res
     .status(HTTP_STATUS.OK)
     .json(
@@ -77,7 +78,7 @@ export const deleteIncident = asyncHandler(async (req, res) => {
 });
 
 export const restoreIncident = asyncHandler(async (req, res) => {
-  const incident = await restoreIncidentService(req.params.id);
+  const incident = await restoreIncidentService(req.params.id, req.user._id);
   return res
     .status(HTTP_STATUS.OK)
     .json(
@@ -90,7 +91,7 @@ export const restoreIncident = asyncHandler(async (req, res) => {
 });
 
 export const archiveIncident = asyncHandler(async (req, res) => {
-  const incident = await archiveIncidentService(req.params.id);
+  const incident = await archiveIncidentService(req.params.id, req.user._id);
   return res
     .status(HTTP_STATUS.OK)
     .json(

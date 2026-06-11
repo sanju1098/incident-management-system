@@ -1,12 +1,24 @@
 import Incident from "./incident.model.js";
 import ApiError from "../../utils/api/error.js";
 import { HTTP_STATUS } from "../../constants/httpStatus.js";
+import { createTimelineEvent } from "../timeline/timeline.service.js";
 
 export const createIncidentService = async (payload, userId) => {
-  return Incident.create({
+  const incident = await Incident.create({
     ...payload,
     createdBy: userId,
   });
+
+  await createTimelineEvent({
+    incidentId: incident._id,
+    actor: userId,
+    action: "INCIDENT_CREATED",
+    newValue: {
+      title: incident.title,
+    },
+  });
+
+  return incident;
 };
 
 export const getIncidentsService = async (filters) => {
@@ -80,24 +92,69 @@ export const getIncidentByIdService = async (incidentId) => {
   return incident;
 };
 
-export const updateIncidentService = async (incidentId, payload) => {
-  if (payload.status === "Resolved") {
-    payload.resolvedAt = new Date();
-  }
-
-  const incident = await Incident.findByIdAndUpdate(incidentId, payload, {
-    new: true,
-    runValidators: true,
-  });
+export const updateIncidentService = async (incidentId, payload, userId) => {
+  const incident = await Incident.findById(incidentId);
 
   if (!incident) {
     throw new ApiError(HTTP_STATUS.NOT_FOUND, "Incident not found");
   }
 
+  const oldSeverity = incident.severity;
+  const oldTeam = incident.assignedTeam;
+  const oldAssignee = incident.assignee;
+  const oldStatus = incident.status;
+
+  if (payload.status === "Resolved" && oldStatus !== "Resolved") {
+    payload.resolvedAt = new Date();
+  }
+
+  Object.assign(incident, payload);
+  await incident.save();
+
+  if (oldStatus !== incident.status) {
+    await createTimelineEvent({
+      incidentId,
+      actor: userId,
+      action: "STATUS_CHANGED",
+      previousValue: oldStatus,
+      newValue: incident.status,
+    });
+  }
+
+  if (oldSeverity !== incident.severity) {
+    await createTimelineEvent({
+      incidentId,
+      actor: userId,
+      action: "SEVERITY_CHANGED",
+      previousValue: oldSeverity,
+      newValue: incident.severity,
+    });
+  }
+
+  if (String(oldTeam) !== String(incident.assignedTeam)) {
+    await createTimelineEvent({
+      incidentId,
+      actor: userId,
+      action: "TEAM_ASSIGNED",
+      previousValue: oldTeam,
+      newValue: incident.assignedTeam,
+    });
+  }
+
+  if (String(oldAssignee) !== String(incident.assignee)) {
+    await createTimelineEvent({
+      incidentId,
+      actor: userId,
+      action: "ASSIGNEE_CHANGED",
+      previousValue: oldAssignee,
+      newValue: incident.assignee,
+    });
+  }
+
   return incident;
 };
 
-export const deleteIncidentService = async (incidentId) => {
+export const deleteIncidentService = async (incidentId, userId) => {
   const incident = await Incident.findById(incidentId);
 
   if (!incident) {
@@ -106,10 +163,17 @@ export const deleteIncidentService = async (incidentId) => {
   incident.isDeleted = true;
   incident.deletedAt = new Date();
   await incident.save();
+
+  await createTimelineEvent({
+    incidentId,
+    actor: userId,
+    action: "INCIDENT_DELETED",
+  });
+
   return true;
 };
 
-export const restoreIncidentService = async (incidentId) => {
+export const restoreIncidentService = async (incidentId, userId) => {
   const incident = await Incident.findById(incidentId);
 
   if (!incident) {
@@ -119,10 +183,17 @@ export const restoreIncidentService = async (incidentId) => {
   incident.isDeleted = false;
   incident.deletedAt = null;
   await incident.save();
+
+  await createTimelineEvent({
+    incidentId,
+    actor: userId,
+    action: "INCIDENT_RESTORED",
+  });
+
   return incident;
 };
 
-export const archiveIncidentService = async (incidentId) => {
+export const archiveIncidentService = async (incidentId, userId) => {
   const incident = await Incident.findById(incidentId);
 
   if (!incident) {
@@ -139,6 +210,13 @@ export const archiveIncidentService = async (incidentId) => {
   incident.isArchived = true;
   incident.archivedAt = new Date();
   await incident.save();
+
+  await createTimelineEvent({
+    incidentId,
+    actor: userId,
+    action: "INCIDENT_ARCHIVED",
+  });
+
   return incident;
 };
 

@@ -2,6 +2,7 @@ import Comment from "./comment.model.js";
 import Incident from "../incidents/incident.model.js";
 import ApiError from "../../utils/api/error.js";
 import { HTTP_STATUS } from "../../constants/httpStatus.js";
+import { createTimelineEvent } from "../timeline/timeline.service.js";
 
 export const createCommentService = async (incidentId, payload, userId) => {
   const incident = await Incident.findById(incidentId);
@@ -10,11 +11,23 @@ export const createCommentService = async (incidentId, payload, userId) => {
     throw new ApiError(HTTP_STATUS.NOT_FOUND, "Incident not found");
   }
 
-  return Comment.create({
+  const comment = await Comment.create({
     incident: incidentId,
     author: userId,
     ...payload,
   });
+
+  await createTimelineEvent({
+    incidentId,
+    actor: userId,
+    action: "COMMENT_ADDED",
+    newValue: {
+      content: comment.content,
+      commentId: comment._id,
+    },
+  });
+
+  return comment;
 };
 
 export const getCommentsService = async (incidentId) => {
@@ -42,10 +55,21 @@ export const updateCommentService = async (commentId, payload, user) => {
     throw new ApiError(HTTP_STATUS.FORBIDDEN, "Not authorized");
   }
 
+  const oldContent = comment.content;
+
   comment.content = payload.content;
   comment.isEdited = true;
   comment.editedAt = new Date();
   await comment.save();
+
+  await createTimelineEvent({
+    incidentId: comment.incident,
+    actor: user._id,
+    action: "COMMENT_UPDATED",
+    previousValue: oldContent,
+    newValue: payload.content,
+  });
+
   return comment;
 };
 
@@ -66,4 +90,11 @@ export const deleteCommentService = async (commentId, user) => {
   comment.isDeleted = true;
   comment.deletedAt = new Date();
   await comment.save();
+
+  await createTimelineEvent({
+    incidentId: comment.incident,
+    actor: user._id,
+    action: "COMMENT_DELETED",
+    previousValue: comment.content,
+  });
 };
