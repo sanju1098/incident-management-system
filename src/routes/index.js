@@ -6,6 +6,7 @@ import userRoutes from "../modules/users/user.routes.js";
 import teamRoutes from "../modules/teams/team.routes.js";
 import uploadRoutes from "../modules/uploads/upload.routes.js";
 import incidentRoutes from "../modules/incidents/incident.routes.js";
+import commentRoutes from "../modules/comments/comment.routes.js";
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use("/users", userRoutes);
 router.use("/teams", teamRoutes);
 router.use("/uploads", uploadRoutes);
 router.use("/incidents", incidentRoutes);
+router.use("/", commentRoutes);
 
 export default router;
